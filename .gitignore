@@ -1,0 +1,21 @@
+# OS & Editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Never commit credentials or keys even in a personal archive
+.env
+.env.*
+*.pem
+*.key
+secrets/

@@ -1,0 +1,32 @@
+name: Weekly Proactive Life Radar
+
+on:
+  schedule:
+    # Every Sunday at 12:00 UTC (20:00 Beijing / 04:00 PST)
+    - cron: "0 12 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  radar-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Life repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generate Weekly Proactive Radar Report
+        run: |
+          python3 scripts/proactive_radar.py --stdout >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Run Life OS Health & Lint Audit
+        run: |
+          echo -e "\n---\n## Weekly Lint Audit\n\`\`\`text" >> "$GITHUB_STEP_SUMMARY"
+          python3 scripts/lint_life.py | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
