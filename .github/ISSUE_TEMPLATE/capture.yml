@@ -1,0 +1,33 @@
+name: Quick Capture（手机 10 秒速记）
+description: 记录想法、消费冷静项、新事实或临期事项；带截止日期的条目会在 T-1/T0 自动提醒，无需等周日整理
+title: "[capture] "
+labels: ["capture"]
+body:
+  - type: dropdown
+    id: category
+    attributes:
+      label: 类别
+      options:
+        - 新事实 / 状态更新
+        - 消费冷静项（写价格和动机）
+        - 临期硬期限（填下方截止日期）
+        - 决策念头 / 待查问题
+        - 偏好 / 踩雷拉黑
+        - 其他速记
+    validations:
+      required: true
+  - type: input
+    id: due_date
+    attributes:
+      label: 截止日期（可选）
+      description: 若是本周内即将到期的硬期限，填 YYYY-MM-DD（例如 2026-11-26），系统会在 T-1/T0 主动推送；无硬截止留空即可
+      placeholder: YYYY-MM-DD
+    validations:
+      required: false
+  - type: textarea
+    id: note
+    attributes:
+      label: 一句话内容
+      placeholder: 例：周四车险续保到期 / 刚吃 XX 面馆太咸拉黑 / 想买 ¥1800 耳机先冷静 72h
+    validations:
+      required: true

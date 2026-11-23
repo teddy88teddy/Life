@@ -1,0 +1,31 @@
+# Life OS v3.1 系统配置（唯一配置文件，所有字段均由 scripts/lifeos.py 实际读取并受白名单校验）
+owner: teddy88teddy
+repo: teddy88teddy/Life
+tz: Asia/Shanghai
+
+notify:
+  channel: serverchan # 密钥仅存于 GitHub production Environment Secret: SERVERCHAN_SENDKEY
+  sunday_heartbeat: true # 每 ISO 周日最多发 1 条周报心跳（通过心跳 Issue 状态行去重）
+
+mobile_ai:
+  app: gemini_skill
+  context_pack_max_chars: 9000 # 硬预算：强制保留 1–4 节，超预算直接校验报错
+
+escalation:
+  high_hours: 72 # severity=high 的 open Issue 距上次发送超 72h 最多升级提醒 1 次
+  ignored_rule_threshold: 3 # 同规则累计被 not_planned 关闭 >=3 次则在周报建议删改
+
+spending_gates_cny:
+  tier0_instant_max: 200
+  tier1_review_max: 1000
+  tier2_cooling_max: 5000
+  cooling_hours: 72
+
+rules:
+  decision_deadline_windows: [7, 1]
+  decision_review_lead_days: 3
+  exception_expiry_lead_days: 3
+  pending_ai_max_days: 7
+  energy_low_threshold: 2
+  energy_low_consecutive_weeks: 2
+  energy_max_gap_days: 21

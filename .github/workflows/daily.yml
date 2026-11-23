@@ -1,0 +1,140 @@
+name: Daily Proactive Radar & CI
+
+on:
+  schedule:
+    # 每天北京时间 08:30（UTC 00:30）；周日自动发周报心跳（每 ISO 周最多 1 次）
+    - cron: "30 0 * * *"
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "运行模式（normal=正常巡检 / test-push=验收发1条测试微信 / simulate-send-failure=模拟推送失败）"
+        required: false
+        default: "normal"
+        type: choice
+        options:
+          - normal
+          - test-push
+          - simulate-send-failure
+
+# 顶层默认最小只读权限；validate 不接触任何 secret
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (read-only, no persisted credentials)
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pinned dependencies
+        run: pip install -r scripts/requirements.txt
+
+      - name: Run synthetic unit tests
+        run: python3 -m unittest scripts/test_lifeos.py -v
+
+      - name: Strict validation of live repository
+        run: python3 scripts/lifeos.py validate
+
+  prod:
+    needs: validate
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    # production Environment 须在 GitHub Settings 设为仅允许 main 分支部署，并托管 SERVERCHAN_SENDKEY / HEALTHCHECKS_PING_URL
+    environment: production
+    permissions:
+      contents: write
+      issues: write
+    concurrency:
+      group: lifeos-prod
+      cancel-in-progress: false
+    steps:
+      - name: Checkout main (no persisted credentials)
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pinned dependencies
+        run: pip install -r scripts/requirements.txt
+
+      - name: Build out artifacts or prepare crash-safe delivery
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          rm -rf /tmp/o
+          if [ "${{ github.event_name }}" = "push" ]; then
+            # push 到 main 只读过滤已关闭 Issue 并刷新 out 产物，绝不建 Issue、绝不吃提醒
+            python3 scripts/lifeos.py build-out --out-dir /tmp/o --read-issues
+          else
+            MODE="${{ inputs.mode || 'normal' }}"
+            python3 scripts/lifeos.py prepare --out-dir /tmp/o --mode "$MODE"
+          fi
+
+      - name: Publish generated artifacts to orphan `out` branch and verify remote
+        env:
+          GH_PUSH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TMP_WORK=/tmp/out-repo
+          rm -rf "$TMP_WORK"
+          mkdir -p "$TMP_WORK"
+          git -C "$TMP_WORK" init -b out
+          git -C "$TMP_WORK" config user.name "github-actions[bot]"
+          git -C "$TMP_WORK" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          cp /tmp/o/radar.md "$TMP_WORK/radar.md"
+          cp /tmp/o/calendar.ics "$TMP_WORK/calendar.ics"
+          cp /tmp/o/context_pack.md "$TMP_WORK/context_pack.md"
+          git -C "$TMP_WORK" add -A
+          git -C "$TMP_WORK" commit -m "chore(out): update radar, calendar.ics, context_pack [$(date -u +%Y-%m-%dT%H:%MZ)]"
+          git -C "$TMP_WORK" remote add origin "https://x-access-token:${GH_PUSH_TOKEN}@github.com/${{ github.repository }}.git"
+          git -C "$TMP_WORK" push --force origin out
+          # 远端回读校验
+          LOCAL_SHA=$(git -C "$TMP_WORK" rev-parse HEAD)
+          REMOTE_SHA=$(git -C "$TMP_WORK" ls-remote --heads origin out | awk '{print $1}')
+          test -n "$REMOTE_SHA" && test "$LOCAL_SHA" = "$REMOTE_SHA"
+
+      - name: Deliver ServerChan digest and PATCH Issue outbox state
+        if: github.event_name != 'push'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
+        run: |
+          python3 scripts/lifeos.py deliver --digest /tmp/o/digest.json
+
+      - name: Ping external dead-man switch (ONLY after out publish & delivery succeed)
+        if: github.event_name != 'push'
+        env:
+          HEALTHCHECKS_PING_URL: ${{ secrets.HEALTHCHECKS_PING_URL }}
+        run: |
+          python3 scripts/lifeos.py ping-healthcheck
+
+      - name: Alert via ServerChan on production failure (max 1 msg; keeps job red)
+        if: failure() && github.event_name != 'push' && (inputs.mode || 'normal') != 'simulate-send-failure'
+        continue-on-error: true
+        env:
+          SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
+        run: |
+          python3 scripts/lifeos.py notify-failure \
+            --message "LifeOS 生产巡检失败，请立即排查（同时留意 GitHub 失败邮件）：${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+      - name: Write diagnostic radar to Actions Summary
+        if: always()
+        run: |
+          if [ -f /tmp/o/radar.md ]; then
+            cat /tmp/o/radar.md >> "$GITHUB_STEP_SUMMARY"
+          fi
