@@ -1,0 +1,26 @@
+# 硬期限、自动续费与精确小时冷静期（唯一事实源）
+# 说明：
+#   - renewal / deadline / custom 必须使用合法 YYYY-MM-DD 日期，非法日期会直接导致 CI 变红报警
+#   - cooling 必须使用带时区的 ISO-8601 时间戳（如 2026-11-23T21:30:00+08:00）和 hours（默认 72）
+#
+# 示例（启用时去掉注释）：
+# items:
+#   - id: car-insurance
+#     title: 车险续保
+#     kind: renewal
+#     due: 2026-12-15
+#     remind: [30, 7, 1]
+#     severity: high
+#     auto_renew: true
+#     note: 比价并核对三者险额度
+#   - id: cool-espresso-machine
+#     title: 意式咖啡机冷静期
+#     kind: cooling
+#     added: 2026-11-23T21:30:00+08:00
+#     hours: 72
+#     price: 2999
+#     severity: med
+#     resolved: false
+#     note: 确认台面空间与每周真实使用频次
+
+items: []

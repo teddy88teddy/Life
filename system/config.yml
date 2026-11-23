@@ -1,0 +1,23 @@
+# Life OS v3 系统配置（唯一事实源，不含任何密钥）
+owner: teddy88teddy
+repo: teddy88teddy/Life
+tz: Asia/Shanghai
+
+notify:
+  channel: serverchan # 通过 GitHub Actions Secret: SERVERCHAN_SENDKEY 注入
+  daily_max_messages: 1
+  sunday_heartbeat: true # 每周日无论有无紧急事件均发送周报心跳
+
+mobile_ai:
+  app: gemini
+  context_pack_max_chars: 9000 # 约 <= 3k tokens，适配 Gemini Gem
+
+escalation:
+  high_hours: 72 # severity=high 的 open Issue 超 72h 最多升级提醒 1 次
+  ignored_rule_threshold: 3 # 同规则累计被 not_planned 关闭 >=3 次则在周报建议删改
+
+spending_gates_cny:
+  tier0_instant_max: 200
+  tier1_review_max: 1000
+  tier2_cooling_max: 5000
+  cooling_hours: 72

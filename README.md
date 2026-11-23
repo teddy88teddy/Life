@@ -1,53 +1,52 @@
-# Life of Teddy — 主动式全尺度 AI 人生决策系统
+# Life of Teddy — Life OS v3.0
 
-这是 Teddy 的数字人生档案与 AI 首席参谋底座（Markdown + Git + 自动化巡检），覆盖从**人生重大战略（职业生涯发展、财富资本配置、健康长寿、关系人脉、认知成长）**到**日常高频微决策（饮食、穿搭、消费、作息、休闲等一切生活选择）**的全尺度场景。
+面向全尺度人生决策（职业、财富、健康、关系、安全网兜底、成长与日常生活）的轻量化 AI 操作系统。
 
----
-
-## 核心设计原则（v2.0）
-
-1. **全人生域 MECE 覆盖，不为例子所限**：
-   围绕六大人生核心域（`career` / `wealth` / `health` / `relationships` / `growth` / `lifestyle`）建立 **战略（`strategy.md`）+ 现状（`state.md`）** 双轮结构，任何新需求或子主题随时自然生长。
-2. **主动性优先（Proactive Chief of Staff）**：
-   - **开场主动雷达（`00_radar.md`）**：每次对话自动检查到期决策复盘、触发的人生预警线、冷静池解冻、停滞目标与最高价值信息盲区，主动提醒而非等你开口；
-   - **预设人生触发器（`01_north_star/triggers.md`）**：为职业停滞、财务失衡、精力过载、冲动消费提前写好 IF-THEN 预警线；
-   - **大小决策双向贯通（The One Loop）**：宏观主线向下约束日常选择，日常连续异常信号向上触发战略纠偏；
-   - **仓库自带心跳**：内置 `scripts/proactive_radar.py` + `scripts/lint_life.py` 与每周自动巡检工作流（`.github/workflows/weekly-radar.yml`）。
-3. **反谄媚 + 越用越准**：
-   L2/L3 重大决策强制盲评、事前验尸（Pre-mortem）与三视角董事会打分，并用决策日志与 3 次晋升法则持续校准判断力。
+**三条底层铁律**：
+1. **会出后果的规则交给代码，需要判断的交给模型**：期限、72h 冷静期、TTL 过期、合法日期全由 `scripts/lifeos.py` 硬校验，CI 校验失败直接红灯并通过微信 Server酱报警。
+2. **借力现成设施，零自研状态机**：事件台账 = **GitHub Issues**；手机日历 = **`out` 分支 `calendar.ics`**；微信触达 = **Server酱**；手机快速记事 = **`capture` Issue 模板**；手机 AI = **Gemini 载入 `out` 分支 `context_pack.md`**。
+3. **没有数据源的规则不上线**：`?` 表示未知盲区，`none` 表示已确认没有，绝不把“没报警”误当“一切正常”。
 
 ---
 
-## 目录结构
+## 3 分钟启用清单（合并进 `main` 后执行）
 
+### 1. 配置微信 Server酱推送（必需）
+1. 在 GitHub 仓库打开 `Settings → Secrets and variables → Actions → New repository secret`；
+2. 新建 Secret 名称 **`SERVERCHAN_SENDKEY`**，填入你的 Server酱 SendKey（自动兼容 Turbo `SCT...` 与 Server酱³ `sctp...`）；
+3. *（可选外部死信心跳）* 新建 **`HEALTHCHECKS_PING_URL`**（如 healthchecks.io 免费 ping 地址），防止 GitHub 定时任务意外停摆。
+4. 进入 GitHub `Actions → Daily Proactive Radar & CI → Run workflow` 手动触发一次，确认微信收到推送、且 `out` 分支已生成。
+
+### 2. 订阅手机日历（硬期限看得见）
+`out` 分支生成后，在手机日历添加 URL 订阅（日历只负责看见，微信 Server酱负责按 T-30/T-7/T-1 准时提醒）：
 ```text
-Life/
-├── AI_GUIDE.md               # 【热层】参谋长宪法、主动性协议、L0-L3路由与反谄媚规则
-├── AGENTS.md / CLAUDE.md     # 跨平台 AI 自动入口指针
-├── 00_now.md                 # 【热层】实时作战室（当下主线、精力/健康/消费约束）
-├── 00_radar.md               # 【热层】主动预警雷达（由脚本 + AI 自动刷新）
-├── 01_north_star/            # 【顶层方向盘】TELOS愿景、价值观红线、个人说明书、人生触发器库
-├── 02_domains/               # 【六大人生核心域】每个域均含 strategy.md + state.md
-│   ├── career/               #   1. 职业生涯发展与跃迁战略
-│   ├── wealth/               #   2. 财富增长、投资配置与消费防线（含72h冷静池）
-│   ├── health/               #   3. 健康长寿、体能、睡眠与饮食底层规则
-│   ├── relationships/        #   4. 亲密关系、家庭责任与高价值人脉
-│   ├── growth/               #   5. 认知成长、技能树、信息食谱与 AI 杠杆
-│   └── lifestyle/            #   6. 通用日常微决策与生活脉冲（不限吃/穿/周末，自由扩展）
-├── 03_decisions/             # 【决策引擎】框架库、提案模板、active 待决、log 复盘总账
-├── 04_cadence/               # 【主动节律与进化】周/月/季协议、建档地图、inbox、规律库、复盘归档
-├── scripts/                  # 【确定性工具】lint_life.py 体检 + proactive_radar.py 主动雷达
-└── .github/workflows/        # 【自动心跳】weekly-radar.yml 每周定时巡检
+https://raw.githubusercontent.com/teddy88teddy/Life/out/calendar.ics
 ```
+*(极少数涉及法律/罚款的硬期限，可在手机原生提醒再设一条双保险。)*
+
+### 3. 配置手机端 Gemini（L0 压缩上下文）
+1. 在 Gemini 创建一个专属 Gem（如 `Teddy LifeOS`）；
+2. 复制 `https://raw.githubusercontent.com/teddy88teddy/Life/out/context_pack.md`（≤3k tokens）贴入 Gem 指令或知识文件；
+3. 每周 5 分钟周检查后顺手刷新一次即可（L0 日常决策完全容忍一周上下文延迟）。
 
 ---
 
-## 常用本地命令
+## 日常怎么用？（零摩擦操作指南）
+
+| 场景 | 怎么操作 |
+| :--- | :--- |
+| **手机 10 秒记一件事** | GitHub App 新建 Issue，选 `Quick Capture` 模板（自动打 `capture` 标签）；周检查时统一整理 |
+| **收到微信 Server酱提醒** | 点推送里的 Issue 链接：直接 **Close** = 已处理；**Close as not planned** = 忽略；评论 `/snooze 3d` 或 `/snooze 2026-12-01` = 延后；评论 `/fact key=value` = 待入库事实（**仅认 `teddy88teddy` 本人操作**） |
+| **做一次真实决策（L1–L3）** | 在桌面 AI 会话直接抛真实问题，AI 按 `AGENTS.md` 路由并在 `decisions/YYYY-MM-DD-<slug>.md` 单文件落盘 |
+| **日常微决策（L0）** | 优先按 `domains/daily.md` 默认规则直接执行；覆盖不到时用手机 Gemini Gem 10 秒拿 1 个可执行答案 |
+| **每周 5 分钟周检查** | 收到周日 08:30 微信心跳周报后：清 `capture`、确认 `pending` 事实、记 `weekly_energy: 1..5`、刷新 `now.md`；**漏了一周直接从今天重启，不补账** |
+
+---
+
+## 本地校验与测试
 
 ```bash
-# 刷新主动预警雷达（更新 00_radar.md）
-python3 scripts/proactive_radar.py
-
-# 运行全库健康体检（热层行数、死链、过期、到期复盘、密钥防漏）
-python3 scripts/lint_life.py
+pip install -r scripts/requirements.txt
+python3 scripts/lifeos.py validate
+python3 -m unittest scripts/test_lifeos.py -v
 ```

@@ -1,0 +1,24 @@
+name: Quick Capture（手机 10 秒速记）
+description: 记录想法、消费冷静项、新事实或待处理决策，周检查时统一整理入库
+title: "[capture] "
+labels: ["capture"]
+body:
+  - type: dropdown
+    id: category
+    attributes:
+      label: 类别
+      options:
+        - 新事实 / 状态更新
+        - 消费冷静项（写价格和动机）
+        - 决策念头 / 待查问题
+        - 偏好 / 踩雷拉黑
+        - 其他速记
+    validations:
+      required: true
+  - type: textarea
+    id: note
+    attributes:
+      label: 一句话内容
+      placeholder: 例：车险 2026-12-15 到期 / 刚吃 XX 面馆太咸拉黑 / 想买 ¥1800 耳机先冷静 72h
+    validations:
+      required: true
