@@ -6,7 +6,7 @@ facts:
 
 # daily.md — 日常默认系统与偏好（≤60 行）
 
-> 大多数日常 L0 选择应靠**默认规则**直接解决，无需每次开聊；默认规则覆盖不到时再问手机 Gemini（载入 `out/context_pack.md`）。
+> 大多数日常 L0 选择应靠**默认规则**直接解决，无需每次开聊；默认规则覆盖不到时再问手机 Gemini Skill（挂载 `context_pack.md` Google Doc 快照）。
 
 ## 1. 常用默认规则（Defaults — 消灭决策疲劳）
 - **工作日午餐 / 晚餐默认**：?

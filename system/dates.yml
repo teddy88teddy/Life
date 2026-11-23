@@ -1,7 +1,9 @@
-# 硬期限、自动续费与精确小时冷静期（唯一事实源）
+# 非决策类的硬期限、自动续费与精确小时冷静期（唯一事实源）
 # 说明：
-#   - renewal / deadline / custom 必须使用合法 YYYY-MM-DD 日期，非法日期会直接导致 CI 变红报警
-#   - cooling 必须使用带时区的 ISO-8601 时间戳（如 2026-11-23T21:30:00+08:00）和 hours（默认 72）
+#   - 决策固有日期（deadline / review_due / downside.exit_by）只写 decisions/*.md，禁止在本文件双录
+#   - id 必须匹配 ^[a-z0-9][a-z0-9._-]{0,63}$（禁止空格）
+#   - renewal / deadline / custom 必须使用合法 YYYY-MM-DD（非法日期、拼写错字段、重复键均会导致 CI 红灯）
+#   - cooling 必须使用带时区的 ISO-8601 时间戳（如 2026-11-23T21:30:00+08:00）与正数 hours（默认 72），解冻最低级别为 med
 #
 # 示例（启用时去掉注释）：
 # items:
